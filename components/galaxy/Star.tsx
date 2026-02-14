@@ -59,11 +59,11 @@ const Star: React.FC<StarProps> = ({ star, isVisited, onClick }) => {
     <group position={star.position}>
       {/* Outer glow sphere */}
       <mesh ref={glowRef}>
-        <sphereGeometry args={[0.6, 16, 16]} />
+        <sphereGeometry args={[0.8, 32, 32]} />
         <meshBasicMaterial
           color={star.color}
           transparent
-          opacity={0.15}
+          opacity={0.01}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
