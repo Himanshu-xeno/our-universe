@@ -118,7 +118,13 @@ export default function LandingPage() {
 
       {/* Gradient overlays */}
       <div className="fixed inset-0 z-0 bg-gradient-to-b from-transparent via-deep-navy/50 to-deep-navy pointer-events-none" />
-      <div className="fixed inset-0 z-0 bg-gradient-radial from-cosmic-purple/20 to-transparent pointer-events-none" />
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(26, 10, 46, 0.3) 0%, transparent 70%)",
+        }}
+      />
 
       {/* Audio toggle */}
       <AudioPlayer />

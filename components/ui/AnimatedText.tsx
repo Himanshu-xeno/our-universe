@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 
 interface AnimatedTextProps {
   texts: string[];
@@ -11,9 +11,6 @@ interface AnimatedTextProps {
   onComplete?: () => void;
 }
 
-/**
- * Typewriter-style animated text that displays lines sequentially.
- */
 const AnimatedText: React.FC<AnimatedTextProps> = ({
   texts,
   className = "",
@@ -23,61 +20,65 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({
 }) => {
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [currentText, setCurrentText] = useState("");
-  const [isTyping, setIsTyping] = useState(true);
   const [completedLines, setCompletedLines] = useState<string[]>([]);
+  const [allDone, setAllDone] = useState(false);
+
+  // Store onComplete in a ref so it never causes re-renders
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
+  // Store texts in a ref to avoid dependency issues
+  const textsRef = useRef(texts);
+  textsRef.current = texts;
 
   useEffect(() => {
-    if (currentLineIndex >= texts.length) {
-      onComplete?.();
+    // Already finished everything
+    if (allDone) return;
+
+    // All lines have been typed
+    if (currentLineIndex >= textsRef.current.length) {
+      setAllDone(true);
+      onCompleteRef.current?.();
       return;
     }
 
-    const fullText = texts[currentLineIndex];
+    const fullText = textsRef.current[currentLineIndex];
 
-    if (isTyping) {
-      if (currentText.length < fullText.length) {
-        const timer = setTimeout(() => {
-          setCurrentText(fullText.slice(0, currentText.length + 1));
-        }, typingSpeed);
-        return () => clearTimeout(timer);
-      } else {
-        // Line finished typing — wait then move to next
-        setIsTyping(false);
-        const timer = setTimeout(() => {
-          setCompletedLines((prev) => [...prev, fullText]);
-          setCurrentText("");
-          setCurrentLineIndex((prev) => prev + 1);
-          setIsTyping(true);
-        }, delayBetween);
-        return () => clearTimeout(timer);
-      }
+    // Still typing current line
+    if (currentText.length < fullText.length) {
+      const timer = setTimeout(() => {
+        setCurrentText(fullText.slice(0, currentText.length + 1));
+      }, typingSpeed);
+      return () => clearTimeout(timer);
     }
-  }, [
-    currentText,
-    currentLineIndex,
-    isTyping,
-    texts,
-    typingSpeed,
-    delayBetween,
-    onComplete,
-  ]);
+
+    // Current line finished — wait, then move to next line
+    const timer = setTimeout(() => {
+      setCompletedLines((prev) => [...prev, fullText]);
+      setCurrentText("");
+      setCurrentLineIndex((prev) => prev + 1);
+    }, delayBetween);
+
+    return () => clearTimeout(timer);
+  }, [currentText, currentLineIndex, allDone, typingSpeed, delayBetween]);
+  // NOTE: onComplete and texts are intentionally excluded — stored in refs
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <AnimatePresence mode="wait">
-        {completedLines.map((line, index) => (
-          <motion.p
-            key={`completed-${index}`}
-            initial={{ opacity: 0.5 }}
-            animate={{ opacity: 0.6 }}
-            className="text-soft-white/60 font-serif text-xl md:text-3xl italic"
-          >
-            {line}
-          </motion.p>
-        ))}
-      </AnimatePresence>
+      {/* Lines that finished typing — shown dimmer */}
+      {completedLines.map((line, index) => (
+        <motion.p
+          key={`done-${index}`}
+          initial={{ opacity: 0.5 }}
+          animate={{ opacity: 0.6 }}
+          className="text-soft-white/60 font-serif text-xl md:text-3xl italic"
+        >
+          {line}
+        </motion.p>
+      ))}
 
-      {currentLineIndex < texts.length && (
+      {/* Line currently being typed */}
+      {currentLineIndex < texts.length && !allDone && (
         <motion.p
           key={`typing-${currentLineIndex}`}
           initial={{ opacity: 0 }}
@@ -85,6 +86,7 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({
           className="text-soft-white font-serif text-xl md:text-3xl italic text-glow"
         >
           {currentText}
+          {/* Blinking cursor */}
           <motion.span
             animate={{ opacity: [1, 0] }}
             transition={{ duration: 0.6, repeat: Infinity }}
