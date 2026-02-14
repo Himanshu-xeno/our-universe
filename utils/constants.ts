@@ -1,5 +1,14 @@
 import { StarData, LetterData } from '@/store/useAppStore'
 
+const generateRandomPosition = (): [number, number, number] => {
+  return [
+    Math.random() * 40 - 20,  // X: -20 to +20
+    Math.random() * 20 - 10,  // Y: -10 to +10
+    Math.random() * -40,      // Z: 0 to -40 (depth)
+  ]
+}
+
+
 /** Star configuration data for the 3D galaxy */
 export const STARS_DATA: StarData[] = [
   {
@@ -8,7 +17,7 @@ export const STARS_DATA: StarData[] = [
     date: 'January 15, 2023',
     message: 'In a crowded room full of strangers, my eyes found yours. It was as if the entire universe had conspired to bring us to that exact moment in time. Your smile was the first star I ever truly noticed, and from that instant, my night sky was never dark again.',
     color: '#ff6b9d',
-    position: [-4, 2, -3],
+    position: generateRandomPosition(),
   },
   {
     id: 'star-2',
@@ -16,7 +25,7 @@ export const STARS_DATA: StarData[] = [
     date: 'January 20, 2023',
     message: 'We talked for hours that night, as if we had known each other in a thousand lifetimes before this one. Every word you spoke painted colors in my mind I had never seen. Time lost its meaning — minutes became hours, and hours became the foundation of everything we would become.',
     color: '#4ecdc4',
-    position: [3, 3, -5],
+    position: generateRandomPosition(),
   },
   {
     id: 'star-3',
@@ -24,7 +33,7 @@ export const STARS_DATA: StarData[] = [
     date: 'February 3, 2023',
     message: 'Your laughter is the most beautiful melody the universe has ever composed. It echoed through me like a symphony, filling spaces I did not know were empty. In that moment, I understood what poets meant when they wrote about sounds that could heal a soul.',
     color: '#ffd700',
-    position: [-2, -1, -4],
+    position: generateRandomPosition(),
   },
   {
     id: 'star-4',
@@ -32,7 +41,7 @@ export const STARS_DATA: StarData[] = [
     date: 'March 12, 2023',
     message: 'The sky opened up and poured down on us, but neither of us wanted to find shelter. We danced between the raindrops, your hand in mine, and the whole city became our private ballroom. Every puddle reflected the lights above, and I saw our future in each shimmering ripple.',
     color: '#7b68ee',
-    position: [5, -2, -6],
+    position: generateRandomPosition(),
   },
   {
     id: 'star-5',
@@ -40,7 +49,7 @@ export const STARS_DATA: StarData[] = [
     date: 'April 8, 2023',
     message: 'No one has ever spoken my name the way you do. In your voice, it sounds like a prayer, a promise, a poem all at once. You gave meaning to syllables I had heard a million times, and now every time someone else says it, I only hear the echo of you.',
     color: '#ff9a56',
-    position: [-5, -3, -5],
+    position: generateRandomPosition(),
   },
   {
     id: 'star-6',
@@ -48,7 +57,7 @@ export const STARS_DATA: StarData[] = [
     date: 'May 21, 2023',
     message: 'Under a canopy of stars, you whispered a promise that the night kept safe for us. "I will always find my way back to you," you said, and I believed every word because your eyes held more truth than the entire sky above us. That promise became my anchor in every storm.',
     color: '#e056ff',
-    position: [1, 4, -7],
+    position: generateRandomPosition(),
   },
   {
     id: 'star-7',
@@ -56,8 +65,72 @@ export const STARS_DATA: StarData[] = [
     date: 'June 14, 2023',
     message: 'It came on unexpectedly — our song — in a place we had never been, at a time we did not plan. You looked at me, and I looked at you, and we both knew that the universe was reminding us: some connections are not accidents. They are destiny wearing the disguise of coincidence.',
     color: '#56c8ff',
-    position: [4, 1, -3],
+    position: generateRandomPosition(),
   },
+  {
+  id: 'star-8',
+  title: 'The Unexpected Hug',
+  date: 'July 2, 2023',
+  message: 'In that quiet moment, when words were not enough, you hugged me — and everything made sense.',
+  color: '#ff9ff3',
+  position: generateRandomPosition(),
+},
+{
+  id: 'star-9',
+  title: 'The Long Call',
+  date: 'July 18, 2023',
+  message: 'We stayed awake until 3AM, talking about dreams and fears like children mapping constellations.',
+  color: '#48dbfb',
+  position: generateRandomPosition(),
+},
+{
+  id: 'star-10',
+  title: 'The Comfort Silence',
+  date: 'August 4, 2023',
+  message: 'We sat without speaking, yet it felt like the loudest expression of love.',
+  color: '#feca57',
+  position: generateRandomPosition(),
+},
+{
+  id: 'star-11',
+  title: 'The Apology',
+  date: 'August 20, 2023',
+  message: 'Not because we were wrong — but because we valued us more than our pride.',
+  color: '#a29bfe',
+  position: generateRandomPosition(),
+},
+{
+  id: 'star-12',
+  title: 'The Surprise Visit',
+  date: 'September 10, 2023',
+  message: 'You showed up without telling me — and it became one of my favorite memories.',
+  color: '#ff7675',
+  position: generateRandomPosition(),
+},
+{
+  id: 'star-13',
+  title: 'The Shared Dream',
+  date: 'October 1, 2023',
+  message: 'We talked about our future as if it was already written in the stars.',
+  color: '#55efc4',
+  position: generateRandomPosition(),
+},
+{
+  id: 'star-14',
+  title: 'The Inside Joke',
+  date: 'October 18, 2023',
+  message: 'One word. One look. And we were laughing for five minutes straight.',
+  color: '#fd79a8',
+  position: generateRandomPosition(),
+},
+{
+  id: 'star-15',
+  title: 'The Quiet Goodbye',
+  date: 'November 2, 2023',
+  message: 'Even goodbye felt softer when it came from you.',
+  color: '#00cec9',
+  position: generateRandomPosition(),
+},
 ]
 
 /** Hidden star — only visible after progression requirements are met */

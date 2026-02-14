@@ -7,6 +7,7 @@ import { useAppStore, StarData } from "@/store/useAppStore";
 import { useProgress } from "@/hooks/useProgress";
 import GlowButton from "@/components/ui/GlowButton";
 import AudioPlayer from "@/components/ui/AudioPlayer";
+import { STARS_DATA } from "@/utils/constants";
 
 // Lazy load the heavy 3D scene
 const GalaxyScene = lazy(() => import("@/components/galaxy/GalaxyScene"));
@@ -170,7 +171,7 @@ export default function UniversePage() {
           />
         </div>
         <p className="text-xs text-white/30 mt-1">
-          {visitedStarsCount} / 7 stars visited
+          {visitedStarsCount} /{STARS_DATA.length} stars visited
         </p>
       </motion.div>
 
