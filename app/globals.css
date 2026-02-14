@@ -2,26 +2,149 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== GLOBAL STYLES ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --deep-navy: #0a0e1a;
+  --cosmic-purple: #1a0a2e;
+  --nebula-pink: #ff6b9d;
+  --nebula-blue: #4ecdc4;
+  --star-gold: #ffd700;
+  --soft-white: #e8e6f0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--deep-navy);
+  color: var(--soft-white);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--deep-navy);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 157, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 157, 0.5);
+}
+
+/* ===== GLASSMORPHISM UTILITY ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+}
+
+/* ===== TEXT GLOW ===== */
+.text-glow {
+  text-shadow: 0 0 20px rgba(255, 107, 157, 0.5),
+    0 0 40px rgba(255, 107, 157, 0.3),
+    0 0 80px rgba(255, 107, 157, 0.1);
+}
+
+.text-glow-blue {
+  text-shadow: 0 0 20px rgba(78, 205, 196, 0.5),
+    0 0 40px rgba(78, 205, 196, 0.3);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+    0 0 40px rgba(255, 215, 0, 0.3);
+}
+
+/* ===== STARFIELD BACKGROUND ===== */
+.starfield {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ===== CONFETTI ===== */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
   }
+
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: confetti-fall linear forwards;
+}
+
+/* ===== CANVAS GAME ===== */
+.game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* ===== LOADING ===== */
+.loading-shimmer {
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.03) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.03) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===== MOBILE TOUCH CONTROLS ===== */
+.touch-control {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
 }
