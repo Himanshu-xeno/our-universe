@@ -1,101 +1,188 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import AnimatedText from "@/components/ui/AnimatedText";
+import GlowButton from "@/components/ui/GlowButton";
+import AudioPlayer from "@/components/ui/AudioPlayer";
+
+/**
+ * Canvas-based starfield background with parallax mouse tracking.
+ */
+const StarfieldCanvas: React.FC<{ mouseX: number; mouseY: number }> = ({
+  mouseX,
+  mouseY,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const starsRef = useRef<
+    { x: number; y: number; size: number; speed: number; opacity: number }[]
+  >([]);
+  const frameRef = useRef<number>(0);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Initialize stars
+      starsRef.current = Array.from({ length: 200 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2 + 0.5,
+        speed: Math.random() * 0.5 + 0.1,
+        opacity: Math.random() * 0.8 + 0.2,
+      }));
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      starsRef.current.forEach((star) => {
+        // Parallax offset based on mouse
+        const parallaxX = (mouseX - 0.5) * star.speed * 30;
+        const parallaxY = (mouseY - 0.5) * star.speed * 30;
+
+        const drawX = star.x + parallaxX;
+        const drawY = star.y + parallaxY;
+
+        // Twinkle
+        const twinkle =
+          Math.sin(Date.now() * 0.003 * star.speed + star.x) * 0.3 + 0.7;
+
+        ctx.beginPath();
+        ctx.arc(drawX, drawY, star.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * twinkle})`;
+        ctx.fill();
+
+        // Subtle glow for larger stars
+        if (star.size > 1.5) {
+          ctx.beginPath();
+          ctx.arc(drawX, drawY, star.size * 3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${0.03 * twinkle})`;
+          ctx.fill();
+        }
+      });
+
+      frameRef.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(frameRef.current);
+      window.removeEventListener("resize", resize);
+    };
+  }, [mouseX, mouseY]);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 z-0" />;
+};
+
+export default function LandingPage() {
+  const router = useRouter();
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const [textComplete, setTextComplete] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Track normalized mouse position for parallax
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    setMousePos({
+      x: e.clientX / window.innerWidth,
+      y: e.clientY / window.innerHeight,
+    });
+  }, []);
+
+  const handleEnter = useCallback(() => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      router.push("/universe");
+    }, 1200);
+  }, [router]);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      onMouseMove={handleMouseMove}
+    >
+      {/* Starfield background */}
+      <StarfieldCanvas mouseX={mousePos.x} mouseY={mousePos.y} />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {/* Gradient overlays */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-b from-transparent via-deep-navy/50 to-deep-navy pointer-events-none" />
+      <div className="fixed inset-0 z-0 bg-gradient-radial from-cosmic-purple/20 to-transparent pointer-events-none" />
+
+      {/* Audio toggle */}
+      <AudioPlayer />
+
+      {/* Main content */}
+      <AnimatePresence>
+        {!isTransitioning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5 }}
+            className="relative z-10 flex flex-col items-center justify-center text-center px-6 max-w-2xl"
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            {/* Animated typewriter text */}
+            <AnimatedText
+              texts={["In a universe of billions...", "I found you."]}
+              typingSpeed={60}
+              delayBetween={2000}
+              className="mb-16"
+              onComplete={() => setTextComplete(true)}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+            {/* CTA Button — appears after text animation */}
+            <AnimatePresence>
+              {textComplete && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                >
+                  <GlowButton onClick={handleEnter} variant="pink" size="lg">
+                    Enter Our Universe ✦
+                  </GlowButton>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Subtle scroll hint */}
+            {textComplete && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.3 }}
+                transition={{ delay: 2, duration: 1 }}
+                className="mt-8 text-xs text-white/30"
+              >
+                A journey awaits
+              </motion.p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Page transition overlay */}
+      <AnimatePresence>
+        {isTransitioning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 bg-deep-navy"
+            transition={{ duration: 1.2 }}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
