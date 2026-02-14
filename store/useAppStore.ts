@@ -1,135 +1,7 @@
-// import { create } from 'zustand'
-// import { persist } from 'zustand/middleware'
-
-// /** Types for the application state */
-// export interface StarData {
-//   id: string
-//   title: string
-//   date: string
-//   message: string
-//   color: string
-//   position: [number, number, number]
-//   image?: string
-// }
-
-// export interface LetterData {
-//   id: string
-//   title: string
-//   message: string
-//   unlockType: 'date' | 'progress' | 'game'
-//   unlockDate?: string
-//   requiredStars?: number
-//   requiresGame?: boolean
-// }
-
-// interface AppState {
-//   // Progress tracking
-//   visitedStars: string[]
-//   openedLetters: string[]
-//   gameCompleted: boolean
-//   revealUnlocked: boolean
-//   hasEnteredUniverse: boolean
-//   audioEnabled: boolean
-
-//   // Actions
-//   visitStar: (starId: string) => void
-//   openLetter: (letterId: string) => void
-//   completeGame: () => void
-//   unlockReveal: () => void
-//   setHasEnteredUniverse: (value: boolean) => void
-//   toggleAudio: () => void
-//   resetProgress: () => void
-
-//   // Computed helpers
-//   canAccessLetters: () => boolean
-//   canAccessGame: () => boolean
-//   canSeeHiddenStar: () => boolean
-// }
-
-// export const useAppStore = create<AppState>()(
-//   persist(
-//     (set, get) => ({
-//       // Initial state
-//       visitedStars: [],
-//       openedLetters: [],
-//       gameCompleted: false,
-//       revealUnlocked: false,
-//       hasEnteredUniverse: false,
-//       audioEnabled: false,
-
-//       // Visit a star (add to visited list if not already there)
-//       visitStar: (starId: string) => {
-//         const { visitedStars } = get()
-//         if (!visitedStars.includes(starId)) {
-//           set({ visitedStars: [...visitedStars, starId] })
-//         }
-//       },
-
-//       // Open a letter
-//       openLetter: (letterId: string) => {
-//         const { openedLetters } = get()
-//         if (!openedLetters.includes(letterId)) {
-//           set({ openedLetters: [...openedLetters, letterId] })
-//         }
-//       },
-
-//       // Complete the mini game
-//       completeGame: () => {
-//         set({ gameCompleted: true })
-//       },
-
-//       // Unlock the final reveal
-//       unlockReveal: () => {
-//         set({ revealUnlocked: true })
-//       },
-
-//       // Mark that user has entered the universe
-//       setHasEnteredUniverse: (value: boolean) => {
-//         set({ hasEnteredUniverse: value })
-//       },
-
-//       // Toggle background audio
-//       toggleAudio: () => {
-//         set({ audioEnabled: !get().audioEnabled })
-//       },
-
-//       // Reset all progress
-//       resetProgress: () => {
-//         set({
-//           visitedStars: [],
-//           openedLetters: [],
-//           gameCompleted: false,
-//           revealUnlocked: false,
-//           hasEnteredUniverse: false,
-//         })
-//       },
-
-//       // Letters page unlocks after visiting 3 stars
-//       canAccessLetters: () => {
-//         return get().visitedStars.length >= 3
-//       },
-
-//       // Game unlocks after opening at least 1 letter
-//       canAccessGame: () => {
-//         return get().openedLetters.length >= 1
-//       },
-
-//       // Hidden star appears when 5+ stars visited AND game completed
-//       canSeeHiddenStar: () => {
-//         const { visitedStars, gameCompleted } = get()
-//         return visitedStars.length >= 5 && gameCompleted
-//       },
-//     }),
-//     {
-//       name: 'our-universe-progress',
-//     }
-//   )
-// )
-
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-/** Types for the application state */
+/** Types */
 export interface StarData {
   id: string;
   title: string;
@@ -144,56 +16,60 @@ export interface LetterData {
   id: string;
   title: string;
   message: string;
-  unlockType: "date" | "progress" | "game";
-  unlockDate?: string;
-  requiredStars?: number;
-  requiresGame?: boolean;
+  condition: string;
 }
 
 interface AppState {
-  // Hydration flag
+  /** Hydration */
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
 
-  // Progress tracking
+  /** Progress */
   visitedStars: string[];
   openedLetters: string[];
-  gameCompleted: boolean;
   revealUnlocked: boolean;
-  hasEnteredUniverse: boolean;
-  audioEnabled: boolean;
 
-  // Actions
+  /** Game stats */
+  gamesPlayed: number;
+  wonGameIds: string[];
+
+  /** Explicit game completed flag */
+  gameCompleted: boolean;
+  setGameCompleted: (val: boolean) => void;
+
+  /** Actions */
   visitStar: (starId: string) => void;
   openLetter: (letterId: string) => void;
-  completeGame: () => void;
   unlockReveal: () => void;
-  setHasEnteredUniverse: (value: boolean) => void;
-  toggleAudio: () => void;
+  incrementGamesPlayed: () => void;
+  recordGameWin: (gameId: string) => void;
   resetProgress: () => void;
 
-  // Computed helpers
+  /** Computed helpers */
   canAccessLetters: () => boolean;
   canAccessGame: () => boolean;
   canSeeHiddenStar: () => boolean;
+  starsCollected: () => number;
+  lettersOpenedCount: () => number;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      // Hydration
+      /** Hydration */
       _hasHydrated: false,
       setHasHydrated: (state) => set({ _hasHydrated: state }),
 
-      // Initial state
+      /** Initial state */
       visitedStars: [],
       openedLetters: [],
-      gameCompleted: false,
       revealUnlocked: false,
-      hasEnteredUniverse: false,
-      audioEnabled: false,
+      gamesPlayed: 0,
+      wonGameIds: [],
+      gameCompleted: false,
 
-      // Visit a star
+      /** Actions */
+
       visitStar: (starId: string) => {
         const { visitedStars } = get();
         if (!visitedStars.includes(starId)) {
@@ -201,7 +77,6 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      // Open a letter
       openLetter: (letterId: string) => {
         const { openedLetters } = get();
         if (!openedLetters.includes(letterId)) {
@@ -209,49 +84,49 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      completeGame: () => {
-        set({ gameCompleted: true });
+      unlockReveal: () => set({ revealUnlocked: true }),
+
+      incrementGamesPlayed: () =>
+        set((state) => ({ gamesPlayed: state.gamesPlayed + 1 })),
+
+      recordGameWin: (gameId: string) => {
+        const { wonGameIds } = get();
+        if (!wonGameIds.includes(gameId)) {
+          set({ wonGameIds: [...wonGameIds, gameId], gameCompleted: true });
+        }
       },
 
-      unlockReveal: () => {
-        set({ revealUnlocked: true });
-      },
-
-      setHasEnteredUniverse: (value: boolean) => {
-        set({ hasEnteredUniverse: value });
-      },
-
-      toggleAudio: () => {
-        set({ audioEnabled: !get().audioEnabled });
-      },
+      setGameCompleted: (val: boolean) => set({ gameCompleted: val }),
 
       resetProgress: () => {
         set({
           visitedStars: [],
           openedLetters: [],
-          gameCompleted: false,
           revealUnlocked: false,
-          hasEnteredUniverse: false,
+          gamesPlayed: 0,
+          wonGameIds: [],
+          gameCompleted: false,
         });
       },
 
-      canAccessLetters: () => {
-        return get().visitedStars.length >= 3;
-      },
+      /** Computed helpers */
 
-      canAccessGame: () => {
-        return get().openedLetters.length >= 1;
-      },
+      // Access letters page after visiting 3 stars
+      canAccessLetters: () => get().visitedStars.length >= 3,
 
-      canSeeHiddenStar: () => {
-        const { visitedStars, gameCompleted } = get();
-        return visitedStars.length >= 5 && gameCompleted;
-      },
+      // Access game page after opening 1 letter
+      canAccessGame: () => get().openedLetters.length >= 1,
+
+      // Show hidden star after visiting 5 stars and winning at least 1 game
+      canSeeHiddenStar: () =>
+        get().visitedStars.length >= 5 && get().wonGameIds.length >= 1,
+
+      // Derived counts
+      starsCollected: () => get().visitedStars.length,
+      lettersOpenedCount: () => get().openedLetters.length,
     }),
     {
       name: "our-universe-progress",
-
-      // 🔥 THIS FIXES HYDRATION
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

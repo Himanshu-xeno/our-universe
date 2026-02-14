@@ -2,7 +2,13 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LetterData } from "@/store/useAppStore";
+
+interface LetterData {
+  id: string;
+  title: string;
+  message: string;
+  condition: string;
+}
 
 interface LetterModalProps {
   letter: LetterData | null;
@@ -10,18 +16,13 @@ interface LetterModalProps {
   onClose: () => void;
 }
 
-const LetterModal: React.FC<LetterModalProps> = ({
-  letter,
-  isOpen,
-  onClose,
-}) => {
+function LetterModal({ letter, isOpen, onClose }: LetterModalProps) {
   if (!letter) return null;
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -31,7 +32,6 @@ const LetterModal: React.FC<LetterModalProps> = ({
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md"
           />
 
-          {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8, rotateY: -90 }}
             animate={{ opacity: 1, scale: 1, rotateY: 0 }}
@@ -40,10 +40,9 @@ const LetterModal: React.FC<LetterModalProps> = ({
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
             <div
-              className="glass-strong max-w-lg w-full max-h-[80vh] overflow-y-auto p-8 relative pointer-events-auto"
+              className="glass-strong max-w-lg w-full max-h-[80vh] overflow-y-auto p-8 relative pointer-events-auto rounded-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close button */}
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10
@@ -61,7 +60,6 @@ const LetterModal: React.FC<LetterModalProps> = ({
                 </svg>
               </button>
 
-              {/* Decorative top element */}
               <div className="flex justify-center mb-6">
                 <motion.div
                   animate={{ rotate: 360 }}
@@ -76,7 +74,6 @@ const LetterModal: React.FC<LetterModalProps> = ({
                 </motion.div>
               </div>
 
-              {/* Title */}
               <motion.h2
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -86,10 +83,8 @@ const LetterModal: React.FC<LetterModalProps> = ({
                 {letter.title}
               </motion.h2>
 
-              {/* Divider */}
               <div className="w-20 h-px bg-gradient-to-r from-transparent via-nebula-pink/50 to-transparent mx-auto mb-6" />
 
-              {/* Message content */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -99,17 +94,15 @@ const LetterModal: React.FC<LetterModalProps> = ({
                 {letter.message.split("\n").map((paragraph, i) => (
                   <p
                     key={i}
-                    className={`
-                      text-soft-white/80 leading-relaxed
-                      ${paragraph.trim() === "" ? "h-4" : "font-serif text-base"}
-                    `}
+                    className={`text-soft-white/80 leading-relaxed ${
+                      paragraph.trim() === "" ? "h-4" : "font-serif text-base"
+                    }`}
                   >
                     {paragraph}
                   </p>
                 ))}
               </motion.div>
 
-              {/* Bottom decoration */}
               <div className="flex justify-center mt-8">
                 <div className="w-2 h-2 rounded-full bg-nebula-pink/50 animate-pulse" />
               </div>
@@ -119,6 +112,6 @@ const LetterModal: React.FC<LetterModalProps> = ({
       )}
     </AnimatePresence>
   );
-};
+}
 
-export default React.memo(LetterModal);
+export default LetterModal;

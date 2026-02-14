@@ -1,3 +1,4 @@
+// app/universe/page.tsx
 "use client";
 
 import React, { useState, useCallback, Suspense, lazy } from "react";
@@ -7,14 +8,11 @@ import { useAppStore, StarData } from "@/store/useAppStore";
 import { useProgress } from "@/hooks/useProgress";
 import GlowButton from "@/components/ui/GlowButton";
 import AudioPlayer from "@/components/ui/AudioPlayer";
+import BackButton from "@/components/ui/BackButton";
 import { STARS_DATA } from "@/utils/constants";
 
-// Lazy load the heavy 3D scene
 const GalaxyScene = lazy(() => import("@/components/galaxy/GalaxyScene"));
 
-/**
- * Star detail modal shown when a star is clicked in the galaxy.
- */
 const StarModal: React.FC<{
   star: StarData | null;
   isOpen: boolean;
@@ -53,7 +51,6 @@ const StarModal: React.FC<{
                 ✕
               </button>
 
-              {/* Star color accent */}
               <div
                 className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center"
                 style={{
@@ -154,7 +151,10 @@ export default function UniversePage() {
       {/* Audio toggle */}
       <AudioPlayer />
 
-      {/* Top-left progress indicator */}
+      {/* Back to Landing Page - CENTERED */}
+      <BackButton to="/" label="Home" position="center" />
+
+      {/* Progress indicator - stays on left */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -171,7 +171,7 @@ export default function UniversePage() {
           />
         </div>
         <p className="text-xs text-white/30 mt-1">
-          {visitedStarsCount} /{STARS_DATA.length} stars visited
+          {visitedStarsCount} / {STARS_DATA.length} stars visited
         </p>
       </motion.div>
 

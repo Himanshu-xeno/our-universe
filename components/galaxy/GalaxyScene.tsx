@@ -306,7 +306,7 @@ const CameraController: React.FC<{
       const zoomTarget = new THREE.Vector3(
         target.x * 0.7,
         target.y * 0.7,
-        target.z + 4,
+        target.z + 4 /*4*/,
       );
       camera.position.lerp(zoomTarget, 0.03);
     } else {
@@ -374,7 +374,7 @@ const GalaxyInner: React.FC<GalaxySceneProps> = ({
         minDistance={3}
         maxDistance={50}
         rotateSpeed={0.5}
-        zoomSpeed={1.2}
+        zoomSpeed={1.5}
         panSpeed={0.5}
         maxPolarAngle={Math.PI}
         minPolarAngle={0}
