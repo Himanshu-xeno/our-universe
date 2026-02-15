@@ -1164,7 +1164,7 @@ const FloatingParticles: React.FC = () => {
 };
 
 // ═══════════════════════════════════════════════════════════
-// RULES MODAL
+// RULES MODAL — ✅ FIXED: Touch support for mobile
 // ═══════════════════════════════════════════════════════════
 const RulesModal: React.FC<{
   game: GameType;
@@ -1180,7 +1180,14 @@ const RulesModal: React.FC<{
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-black/85 backdrop-blur-lg flex items-center justify-center p-4"
+      style={{ touchAction: "manipulation" }}
       onClick={onClose}
+      onTouchEnd={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+          onClose();
+        }
+      }}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -1191,8 +1198,11 @@ const RulesModal: React.FC<{
         style={{
           background: `linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,27,75,0.95))`,
           boxShadow: `0 0 60px ${details.color}15, 0 0 120px ${details.color}08`,
+          touchAction: "pan-y",
+          pointerEvents: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
       >
         <div
           className="h-1 w-full"
@@ -1201,10 +1211,22 @@ const RulesModal: React.FC<{
           }}
         />
 
-        <div className="p-8 overflow-y-auto max-h-[calc(85vh-4px)]">
+        <div
+          className="p-8 overflow-y-auto max-h-[calc(85vh-4px)]"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           <button
             onClick={onClose}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
             className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
+            style={{
+              touchAction: "manipulation",
+              WebkitTapHighlightColor: "transparent",
+            }}
           >
             ✕
           </button>
@@ -1260,7 +1282,10 @@ const RulesModal: React.FC<{
             </span>
           </div>
 
-          <div className="flex justify-center">
+          <div
+            className="flex justify-center"
+            style={{ touchAction: "manipulation", pointerEvents: "auto" }}
+          >
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <GlowButton onClick={onStart} variant="primary" size="lg">
                 🎮 Play Now
@@ -1274,7 +1299,7 @@ const RulesModal: React.FC<{
 };
 
 // ═══════════════════════════════════════════════════════════
-// GAME CARD
+// GAME CARD — ✅ FIXED: Touch support for mobile
 // ═══════════════════════════════════════════════════════════
 const GameCard: React.FC<{
   id: string;
@@ -1309,8 +1334,18 @@ const GameCard: React.FC<{
       background: isUnlocked
         ? `linear-gradient(135deg, rgba(15,23,42,0.8), rgba(30,27,75,0.6))`
         : `rgba(15,23,42,0.5)`,
+      touchAction: "manipulation",
+      WebkitTapHighlightColor: "transparent",
     }}
     onClick={isUnlocked ? onSelect : undefined}
+    onTouchEnd={
+      isUnlocked
+        ? (e) => {
+            e.preventDefault();
+            onSelect();
+          }
+        : undefined
+    }
   >
     {isUnlocked && (
       <div
@@ -1332,13 +1367,7 @@ const GameCard: React.FC<{
 
     <div className="relative z-10 flex flex-col h-full p-6">
       <div className="flex justify-between items-start mb-4">
-        <motion.div
-          className="text-4xl"
-          whileHover={isUnlocked ? { rotate: [0, -10, 10, 0], scale: 1.1 } : {}}
-          transition={{ duration: 0.4 }}
-        >
-          {icon}
-        </motion.div>
+        <div className="text-4xl">{icon}</div>
         {isUnlocked ? (
           <span
             className={`text-[10px] px-2.5 py-1 rounded-full border font-mono uppercase tracking-wider ${
@@ -1383,6 +1412,7 @@ const GameCard: React.FC<{
                 backgroundColor: `${color}20`,
                 border: `1px solid ${color}50`,
                 color: color,
+                touchAction: "manipulation",
               }
             : {}
         }
@@ -1394,7 +1424,7 @@ const GameCard: React.FC<{
 );
 
 // ═══════════════════════════════════════════════════════════
-// MAIN PAGE — ✅ FIXED: No more hard redirect on mobile
+// MAIN PAGE — ✅ FIXED: Mobile freeze, touch events, z-index
 // ═══════════════════════════════════════════════════════════
 export default function GameHubPage() {
   const router = useRouter();
@@ -1418,7 +1448,6 @@ export default function GameHubPage() {
   const [gameDifficulty] = useState<Difficulty>("Easy");
   const [showVictory, setShowVictory] = useState(false);
   const [showLose, setShowLose] = useState(false);
-
   // ✅ NEW: Soft access check instead of hard redirect
   const [accessDenied, setAccessDenied] = useState(false);
 
@@ -1430,14 +1459,37 @@ export default function GameHubPage() {
     revealUnlocked,
   };
 
-  // ✅ FIXED: Soft check — shows message instead of redirecting away
-  // Old code: if (_hasHydrated && !canAccessGame()) router.push("/universe");
-  // New code: just set a flag, page still loads and shows locked cards
+  // ✅ FIXED: Soft check — shows message instead of redirecting
   useEffect(() => {
     if (_hasHydrated && !canAccessGame()) {
       setAccessDenied(true);
     }
   }, [_hasHydrated, canAccessGame]);
+
+  // ✅ NEW: Prevent body scroll when game is active (mobile fix)
+  useEffect(() => {
+    if (activeGame) {
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      document.body.style.height = "100%";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.height = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.height = "";
+    };
+  }, [activeGame]);
 
   const handleSelectGame = (game: GameType) => {
     setSelectedGame(game);
@@ -1530,16 +1582,26 @@ export default function GameHubPage() {
 
       {/* ═══ Navigation ═══ */}
       {!activeGame && <BackButton href="/universe" label="Universe" />}
+
+      {/* ✅ FIXED: Exit Game button — z-[100] + onTouchEnd for mobile */}
       {activeGame && (
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={closeGame}
-          className="fixed top-6 left-6 z-50 text-white/50 hover:text-white flex items-center gap-2 px-4 py-2.5 rounded-full cursor-pointer transition-all hover:bg-white/10 group"
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeGame();
+          }}
+          className="fixed top-6 left-6 z-[100] text-white/50 hover:text-white flex items-center gap-2 px-4 py-2.5 rounded-full cursor-pointer transition-all hover:bg-white/10 group"
           style={{
-            background: "rgba(0,0,0,0.5)",
+            background: "rgba(0,0,0,0.7)",
             backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            touchAction: "manipulation",
+            WebkitTapHighlightColor: "transparent",
+            pointerEvents: "auto",
           }}
         >
           <span className="group-hover:-translate-x-0.5 transition-transform">
@@ -1658,7 +1720,7 @@ export default function GameHubPage() {
               </motion.div>
             </motion.div>
 
-            {/* ✅ NEW: Soft access denied message — replaces hard redirect */}
+            {/* ✅ NEW: Soft access denied message */}
             {accessDenied && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -1696,7 +1758,18 @@ export default function GameHubPage() {
                     }
                     router.push("/letters");
                   }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    try {
+                      sessionStorage.setItem("universeSessionActive", "true");
+                      sessionStorage.setItem("universeTransitioning", "true");
+                    } catch (err) {
+                      console.warn(err);
+                    }
+                    router.push("/letters");
+                  }}
                   className="text-xs text-pink-400/60 hover:text-pink-400 underline transition-colors"
+                  style={{ touchAction: "manipulation" }}
                 >
                   Go to Letters →
                 </button>
@@ -1769,7 +1842,7 @@ export default function GameHubPage() {
         )}
       </AnimatePresence>
 
-      {/* ═══ Active Game ═══ */}
+      {/* ═══ Active Game — ✅ FIXED: Touch handling + body scroll lock ═══ */}
       <AnimatePresence>
         {activeGame && (
           <motion.div
@@ -1780,13 +1853,20 @@ export default function GameHubPage() {
             style={{
               background:
                 "linear-gradient(180deg, #0a0a1a 0%, #0f0f2e 50%, #0a0a1a 100%)",
+              touchAction: "none",
+              overscrollBehavior: "none",
             }}
+            onTouchMove={(e) => e.stopPropagation()}
           >
+            {/* ✅ FIXED: Victory / Lose Overlay — z-[60] + touch support */}
             {(showVictory || showLose) && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="absolute inset-0 z-50 bg-black/85 backdrop-blur-lg flex flex-col items-center justify-center"
+                className="absolute inset-0 z-[60] bg-black/85 backdrop-blur-lg flex flex-col items-center justify-center"
+                style={{ touchAction: "manipulation", pointerEvents: "auto" }}
+                onClick={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
               >
                 <motion.div
                   initial={{ scale: 0.5, opacity: 0 }}
@@ -1795,6 +1875,7 @@ export default function GameHubPage() {
                   className="text-center p-10 rounded-2xl max-w-sm border border-white/10 relative overflow-hidden"
                   style={{
                     background: `linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,27,75,0.95))`,
+                    pointerEvents: "auto",
                   }}
                 >
                   <div
@@ -1825,32 +1906,59 @@ export default function GameHubPage() {
                       : "Every star that falls still lights the way. Try once more — the cosmos believes in you."}
                   </p>
 
-                  <div className="flex gap-3 justify-center">
+                  {/* ✅ FIXED: Buttons with onTouchEnd for mobile */}
+                  <div
+                    className="flex gap-3 justify-center"
+                    style={{
+                      touchAction: "manipulation",
+                      pointerEvents: "auto",
+                    }}
+                  >
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={retryGame}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        retryGame();
+                      }}
                       className="text-white/50 hover:text-white px-5 py-2.5 border border-white/15 rounded-xl hover:border-white/30 transition-all text-sm font-mono"
+                      style={{
+                        touchAction: "manipulation",
+                        WebkitTapHighlightColor: "transparent",
+                        pointerEvents: "auto",
+                      }}
                     >
                       ↻ Retry
                     </motion.button>
-                    <motion.div
+                    <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      onClick={closeGame}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeGame();
+                      }}
+                      className="px-5 py-2.5 rounded-xl text-sm font-mono text-white"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, rgba(124,58,237,0.4), rgba(59,130,246,0.4))",
+                        border: "1px solid rgba(124,58,237,0.5)",
+                        touchAction: "manipulation",
+                        WebkitTapHighlightColor: "transparent",
+                        pointerEvents: "auto",
+                      }}
                     >
-                      <GlowButton
-                        onClick={closeGame}
-                        variant="primary"
-                        size="sm"
-                      >
-                        ← Arcade
-                      </GlowButton>
-                    </motion.div>
+                      ← Arcade
+                    </motion.button>
                   </div>
                 </motion.div>
               </motion.div>
             )}
 
+            {/* ✅ FIXED: Game Container — touch-action: none prevents page freeze */}
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -1859,6 +1967,9 @@ export default function GameHubPage() {
               style={{
                 background:
                   "linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,27,75,0.8))",
+                touchAction: "none",
+                WebkitOverflowScrolling: "touch",
+                overscrollBehavior: "none",
               }}
             >
               {activeGame === "journey" && (
