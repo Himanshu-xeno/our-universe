@@ -9,7 +9,7 @@ interface AudioPlayerProps {
 }
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({
-  src = "/audio/ambient.mp3", // Default audio path
+  src = "/audio/ambient.mp3",
   autoPlay = false,
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -53,19 +53,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   };
 
-  // Sound wave bars animation
   const bars = [1, 2, 3, 4, 5];
 
   return (
     <>
       <audio ref={audioRef} src={src} preload="auto" />
 
-      {/* Fixed Audio Button */}
+      {/* ✅ CHANGED: bottom-6 → top-6 (moves to upper right on ALL pages) */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 1.5, duration: 0.6 }}
-        className="fixed bottom-6 right-6 z-50"
+        className="fixed top-6 right-6 z-50"
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
       >
@@ -73,11 +72,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         <AnimatePresence>
           {showControls && (
             <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="absolute bottom-full right-0 mb-3 p-4 rounded-2xl"
+              // ✅ CHANGED: bottom-full → top-full, mb-3 → mt-3 (dropdown goes DOWN now)
+              className="absolute top-full right-0 mt-3 p-4 rounded-2xl"
               style={{
                 background: "rgba(0, 0, 0, 0.8)",
                 backdropFilter: "blur(20px)",
@@ -129,7 +129,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               : "0 0 20px rgba(0, 0, 0, 0.3)",
           }}
         >
-          {/* Pulse ring when playing */}
           {isPlaying && (
             <motion.div
               animate={{
@@ -145,7 +144,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             />
           )}
 
-          {/* Sound wave visualization */}
           {isPlaying ? (
             <div className="flex items-end gap-[3px] h-5">
               {bars.map((_, i) => (

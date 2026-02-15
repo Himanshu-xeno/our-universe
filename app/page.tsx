@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import AudioPlayer from "@/components/ui/AudioPlayer";
 
 /* ───────────────────────────────────────────
    INLINE ANIMATED TEXT - OPTIMIZED
@@ -413,6 +414,9 @@ export default function LandingPage() {
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#020617]">
       {/* Starfield */}
       <StarfieldCanvas mouseX={mousePos.x} mouseY={mousePos.y} />
+
+      {/* ✅ Audio Player - added back to landing page */}
+      <AudioPlayer />
 
       {/* Gradient overlay */}
       <div className="fixed inset-0 z-[1] pointer-events-none bg-gradient-to-b from-transparent via-[#020617]/30 to-[#020617]/80" />
