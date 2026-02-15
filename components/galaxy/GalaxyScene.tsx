@@ -193,7 +193,7 @@ const GalaxyScene: React.FC<GalaxySceneProps> = (props) => {
         }}
         dpr={[1, 1.5]}
         style={{ background: "#000000" }}
-        raycaster={{ params: { Points: { threshold: 0.5 } } }}
+        raycaster={{ params: { Points: { threshold: 0.5 } } as any }}
       >
         <Suspense fallback={null}>
           <GalaxyInner {...props} />
