@@ -1,112 +1,189 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import { useAppStore } from "@/store/useAppStore";
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-/**
- * Minimal audio toggle player. Creates audio context on first user interaction.
- * Uses a simple Web Audio API oscillator for ambient drone when no audio file is provided.
- */
-const AudioPlayer: React.FC = () => {
-  const audioEnabled = useAppStore((s) => s.audioEnabled);
-  const toggleAudio = useAppStore((s) => s.toggleAudio);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const oscillatorRef = useRef<OscillatorNode | null>(null);
-  const gainRef = useRef<GainNode | null>(null);
+interface AudioPlayerProps {
+  src?: string;
+  autoPlay?: boolean;
+}
 
-  const startAmbientDrone = useCallback(() => {
-    if (audioContextRef.current) return;
-
-    const ctx = new (
-      window.AudioContext || (window as any).webkitAudioContext
-    )();
-    audioContextRef.current = ctx;
-
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 2);
-    gain.connect(ctx.destination);
-    gainRef.current = gain;
-
-    // Create a soft ambient drone with multiple oscillators
-    const freqs = [55, 82.5, 110, 165];
-    freqs.forEach((freq) => {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-
-      const oscGain = ctx.createGain();
-      oscGain.gain.setValueAtTime(0.008, ctx.currentTime);
-      osc.connect(oscGain);
-      oscGain.connect(gain);
-      osc.start();
-    });
-  }, []);
-
-  const stopAmbientDrone = useCallback(() => {
-    if (gainRef.current && audioContextRef.current) {
-      gainRef.current.gain.linearRampToValueAtTime(
-        0,
-        audioContextRef.current.currentTime + 1,
-      );
-      setTimeout(() => {
-        audioContextRef.current?.close();
-        audioContextRef.current = null;
-        gainRef.current = null;
-      }, 1200);
-    }
-  }, []);
+const AudioPlayer: React.FC<AudioPlayerProps> = ({
+  src = "/audio/ambient.mp3", // Default audio path
+  autoPlay = false,
+}) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.3);
+  const [showControls, setShowControls] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (audioEnabled) {
-      startAmbientDrone();
-    } else {
-      stopAmbientDrone();
-    }
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = volume;
+    audio.loop = true;
+
+    const handleCanPlay = () => setIsLoaded(true);
+    audio.addEventListener("canplaythrough", handleCanPlay);
 
     return () => {
-      stopAmbientDrone();
+      audio.removeEventListener("canplaythrough", handleCanPlay);
     };
-  }, [audioEnabled, startAmbientDrone, stopAmbientDrone]);
+  }, [volume]);
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play().catch(console.error);
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
+  };
+
+  // Sound wave bars animation
+  const bars = [1, 2, 3, 4, 5];
 
   return (
-    <motion.button
-      onClick={toggleAudio}
-      className="fixed top-4 right-4 z-50 glass rounded-full w-12 h-12 flex items-center justify-center
-                 hover:bg-white/10 transition-colors cursor-pointer"
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
-      title={audioEnabled ? "Mute audio" : "Enable audio"}
-    >
-      {audioEnabled ? (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
+    <>
+      <audio ref={audioRef} src={src} preload="auto" />
+
+      {/* Fixed Audio Button */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 1.5, duration: 0.6 }}
+        className="fixed bottom-6 right-6 z-50"
+        onMouseEnter={() => setShowControls(true)}
+        onMouseLeave={() => setShowControls(false)}
+      >
+        {/* Expanded controls */}
+        <AnimatePresence>
+          {showControls && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="absolute bottom-full right-0 mb-3 p-4 rounded-2xl"
+              style={{
+                background: "rgba(0, 0, 0, 0.8)",
+                backdropFilter: "blur(20px)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+              }}
+            >
+              {/* Volume slider */}
+              <div className="flex items-center gap-3 mb-3">
+                <svg
+                  className="w-4 h-4 text-white/60"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                </svg>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="w-24 h-1 appearance-none rounded-full cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.8) ${volume * 100}%, rgba(255,255,255,0.2) ${volume * 100}%, rgba(255,255,255,0.2) 100%)`,
+                  }}
+                />
+              </div>
+
+              <p className="text-white/40 text-xs text-center">
+                {isPlaying ? "Now Playing" : "Click to Play"}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Main button */}
+        <motion.button
+          onClick={togglePlay}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative flex items-center justify-center w-14 h-14 rounded-full cursor-pointer group"
+          style={{
+            background: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            boxShadow: isPlaying
+              ? "0 0 30px rgba(255, 255, 255, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05)"
+              : "0 0 20px rgba(0, 0, 0, 0.3)",
+          }}
         >
-          <path d="M11 5L6 9H2v6h4l5 4V5z" />
-          <path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07" />
-        </svg>
-      ) : (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M11 5L6 9H2v6h4l5 4V5z" />
-          <line x1="23" y1="9" x2="17" y2="15" />
-          <line x1="17" y1="9" x2="23" y2="15" />
-        </svg>
-      )}
-    </motion.button>
+          {/* Pulse ring when playing */}
+          {isPlaying && (
+            <motion.div
+              animate={{
+                scale: [1, 1.5, 1],
+                opacity: [0.3, 0, 0.3],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute inset-0 rounded-full border border-white/20"
+            />
+          )}
+
+          {/* Sound wave visualization */}
+          {isPlaying ? (
+            <div className="flex items-end gap-[3px] h-5">
+              {bars.map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{
+                    height: ["40%", "100%", "60%", "90%", "40%"],
+                  }}
+                  transition={{
+                    duration: 0.8 + i * 0.1,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: i * 0.1,
+                  }}
+                  className="w-[3px] bg-white/80 rounded-full"
+                  style={{ minHeight: "4px" }}
+                />
+              ))}
+            </div>
+          ) : (
+            <svg
+              className="w-6 h-6 text-white/60"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+              />
+            </svg>
+          )}
+        </motion.button>
+      </motion.div>
+    </>
   );
 };
 
-export default React.memo(AudioPlayer);
+export default AudioPlayer;

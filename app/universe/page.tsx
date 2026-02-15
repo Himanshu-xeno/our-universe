@@ -18,7 +18,7 @@ const GalaxyScene = lazy(() => import("@/components/galaxy/GalaxyScene"));
 // LOADING COMPONENT
 // ============================================================================
 const LoadingScreen: React.FC = () => (
-  <div className="w-screen h-screen bg-deep-navy flex items-center justify-center">
+  <div className="w-screen h-screen bg-[#020617] flex items-center justify-center">
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -27,7 +27,7 @@ const LoadingScreen: React.FC = () => (
       <motion.div
         animate={{ opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        className="text-soft-white/50 font-serif text-lg"
+        className="text-white/50 font-serif text-lg"
       >
         ✨ Preparing your universe...
       </motion.div>
@@ -43,7 +43,7 @@ const GalaxyLoadingFallback: React.FC = () => (
     <motion.div
       animate={{ opacity: [0.3, 1, 0.3] }}
       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      className="text-soft-white/50 font-serif text-lg"
+      className="text-white/50 font-serif text-lg"
     >
       Loading the stars...
     </motion.div>
@@ -66,22 +66,26 @@ const StarModal: React.FC<StarModalProps> = ({ star, isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-40"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.8) 100%)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+            }}
             aria-hidden="true"
           />
 
-          {/* Modal Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.85, y: 20 }}
+            initial={{ opacity: 0, scale: 0.88, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, y: 20 }}
+            exit={{ opacity: 0, scale: 0.92, y: 15 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
             role="dialog"
@@ -89,56 +93,173 @@ const StarModal: React.FC<StarModalProps> = ({ star, isOpen, onClose }) => {
             aria-labelledby="star-modal-title"
           >
             <div
-              className="glass-strong max-w-md w-full p-8 pointer-events-auto relative rounded-2xl"
+              className="max-w-md w-full pointer-events-auto relative rounded-3xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
+              style={{
+                background:
+                  "linear-gradient(160deg, rgba(15,10,30,0.95) 0%, rgba(8,5,18,0.98) 100%)",
+                backdropFilter: "blur(40px)",
+                WebkitBackdropFilter: "blur(40px)",
+                border: `1px solid ${star.color}20`,
+                boxShadow: `0 25px 80px rgba(0,0,0,0.5), 0 0 60px ${star.color}10, inset 0 1px 0 rgba(255,255,255,0.05)`,
+              }}
             >
-              {/* Close Button */}
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10
-                           flex items-center justify-center hover:bg-white/20 
-                           transition-colors focus:outline-none focus:ring-2 
-                           focus:ring-white/30"
-                aria-label="Close modal"
-              >
-                ✕
-              </button>
-
-              {/* Star Icon */}
+              {/* Top gradient accent using star color */}
               <div
-                className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center"
+                className="absolute top-0 left-0 right-0 h-28 pointer-events-none"
                 style={{
-                  background: `radial-gradient(circle, ${star.color}40, transparent)`,
-                  boxShadow: `0 0 30px ${star.color}40`,
+                  background: `linear-gradient(180deg, ${star.color}12 0%, transparent 100%)`,
                 }}
-              >
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: star.color }}
-                />
+              />
+
+              <div className="relative p-8 sm:p-10">
+                {/* Close Button */}
+                <button
+                  onClick={onClose}
+                  className="absolute top-5 right-5 w-9 h-9 rounded-full flex items-center justify-center
+                           text-white/40 hover:text-white/80 transition-all duration-300
+                           hover:bg-white/10 hover:rotate-90"
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                  }}
+                  aria-label="Close modal"
+                >
+                  ✕
+                </button>
+
+                {/* Star Orb */}
+                <div className="flex justify-center mb-6">
+                  <div className="relative">
+                    {/* Outer glow ring */}
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.4, 1],
+                        opacity: [0.15, 0.3, 0.15],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: `radial-gradient(circle, ${star.color}40 0%, transparent 70%)`,
+                        margin: "-12px",
+                      }}
+                    />
+
+                    <div
+                      className="relative w-16 h-16 rounded-full flex items-center justify-center"
+                      style={{
+                        background: `radial-gradient(circle at 30% 30%, ${star.color}60, ${star.color}20)`,
+                        boxShadow: `0 0 30px ${star.color}30, inset 0 -2px 6px rgba(0,0,0,0.3)`,
+                        border: `1px solid ${star.color}30`,
+                      }}
+                    >
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.15, 1],
+                          opacity: [0.8, 1, 0.8],
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="w-5 h-5 rounded-full"
+                        style={{
+                          backgroundColor: star.color,
+                          boxShadow: `0 0 15px ${star.color}80`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date */}
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-center text-xs text-white/35 mb-3 tracking-wider uppercase"
+                >
+                  {star.date}
+                </motion.p>
+
+                {/* Title */}
+                <motion.h2
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25, duration: 0.4 }}
+                  id="star-modal-title"
+                  className="font-serif text-2xl text-center mb-2 font-medium"
+                  style={{
+                    color: star.color,
+                    textShadow: `0 0 25px ${star.color}40`,
+                    filter: `drop-shadow(0 0 10px ${star.color}20)`,
+                  }}
+                >
+                  {star.title}
+                </motion.h2>
+
+                {/* Divider */}
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="flex items-center justify-center gap-3 my-6"
+                >
+                  <div
+                    className="h-px w-10"
+                    style={{
+                      background: `linear-gradient(90deg, transparent, ${star.color}40)`,
+                    }}
+                  />
+                  <div
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{
+                      backgroundColor: star.color,
+                      opacity: 0.5,
+                      boxShadow: `0 0 6px ${star.color}60`,
+                    }}
+                  />
+                  <div
+                    className="h-px w-10"
+                    style={{
+                      background: `linear-gradient(90deg, ${star.color}40, transparent)`,
+                    }}
+                  />
+                </motion.div>
+
+                {/* Message */}
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.6 }}
+                  className="text-white/70 font-serif text-base leading-relaxed text-center"
+                  style={{ textShadow: "0 0 30px rgba(255,255,255,0.03)" }}
+                >
+                  {star.message}
+                </motion.p>
+
+                {/* Bottom accent */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                  className="flex justify-center mt-8"
+                >
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.3, 1],
+                      opacity: [0.3, 0.6, 0.3],
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      background: `radial-gradient(circle, ${star.color}80 0%, transparent 100%)`,
+                      boxShadow: `0 0 10px ${star.color}40`,
+                    }}
+                  />
+                </motion.div>
               </div>
-
-              {/* Date */}
-              <p className="text-center text-xs text-white/40 mb-2">
-                {star.date}
-              </p>
-
-              {/* Title */}
-              <h2
-                id="star-modal-title"
-                className="font-serif text-xl text-center mb-4 font-semibold"
-                style={{ color: star.color }}
-              >
-                {star.title}
-              </h2>
-
-              {/* Divider */}
-              <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mx-auto mb-4" />
-
-              {/* Message */}
-              <p className="text-soft-white/80 font-serif text-sm leading-relaxed text-center">
-                {star.message}
-              </p>
             </div>
           </motion.div>
         </>
@@ -146,7 +267,6 @@ const StarModal: React.FC<StarModalProps> = ({ star, isOpen, onClose }) => {
     </AnimatePresence>
   );
 };
-
 // ============================================================================
 // PROGRESS INDICATOR COMPONENT
 // ============================================================================
@@ -165,12 +285,17 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
     transition={{ delay: 1 }}
-    className="fixed top-4 left-4 z-30 glass px-4 py-3 rounded-xl"
+    className="fixed top-4 left-4 z-30 px-4 py-3 rounded-xl"
+    style={{
+      background: "rgba(0, 0, 0, 0.5)",
+      backdropFilter: "blur(20px)",
+      border: "1px solid rgba(255, 255, 255, 0.1)",
+    }}
   >
     <p className="text-xs text-white/50 mb-1">Journey Progress</p>
     <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
       <motion.div
-        className="h-full bg-gradient-to-r from-nebula-pink to-nebula-blue rounded-full"
+        className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"
         initial={{ width: 0 }}
         animate={{ width: `${progress}%` }}
         transition={{ duration: 1, ease: "easeOut" }}
@@ -208,7 +333,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
   >
     <GlowButton
       onClick={onLettersClick}
-      variant="blue"
+      variant="pink"
       size="sm"
       disabled={!canAccessLetters}
     >
@@ -219,7 +344,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
 
     <GlowButton
       onClick={onGameClick}
-      variant="gold"
+      variant="glass"
       size="sm"
       disabled={!canAccessGame}
     >
@@ -254,16 +379,13 @@ const InteractionHint: React.FC = () => (
 export default function UniversePage() {
   const router = useRouter();
 
-  // Handle refresh/direct URL access redirect
   useRefreshRedirect();
 
-  // Store state
   const _hasHydrated = useAppStore((s) => s._hasHydrated);
   const visitedStars = useAppStore((s) => s.visitedStars);
   const visitStar = useAppStore((s) => s.visitStar);
   const unlockReveal = useAppStore((s) => s.unlockReveal);
 
-  // Progress tracking
   const {
     canAccessLetters,
     canAccessGame,
@@ -272,11 +394,8 @@ export default function UniversePage() {
     visitedStarsCount,
   } = useProgress();
 
-  // Modal state
   const [selectedStar, setSelectedStar] = useState<StarData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-
-  // ========== EVENT HANDLERS ==========
 
   const handleStarClick = useCallback(
     (star: StarData) => {
@@ -289,7 +408,6 @@ export default function UniversePage() {
 
   const handleCloseModal = useCallback(() => {
     setModalOpen(false);
-    // Delay clearing the star data to allow exit animation
     setTimeout(() => setSelectedStar(null), 500);
   }, []);
 
@@ -306,17 +424,12 @@ export default function UniversePage() {
     router.push("/game");
   }, [router]);
 
-  // ========== LOADING STATE ==========
-
-  // Show loading screen until store is hydrated
   if (!_hasHydrated) {
     return <LoadingScreen />;
   }
 
-  // ========== MAIN RENDER ==========
-
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-deep-navy">
+    <div className="relative w-screen h-screen overflow-hidden bg-[#020617]">
       {/* 3D Galaxy Scene */}
       <div className="absolute inset-0 z-0">
         <Suspense fallback={<GalaxyLoadingFallback />}>
@@ -332,8 +445,8 @@ export default function UniversePage() {
       {/* Audio Player */}
       <AudioPlayer />
 
-      {/* Back Button */}
-      <BackButton to="/" label="Home" position="center" />
+      {/* Back Button - Goes to Landing Page, Centered */}
+      <BackButton href="/" label="Home" position="center" />
 
       {/* Progress Indicator */}
       <ProgressIndicator

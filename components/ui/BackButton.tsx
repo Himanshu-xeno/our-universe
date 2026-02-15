@@ -1,4 +1,3 @@
-// components/ui/BackButton.tsx
 "use client";
 
 import React from "react";
@@ -6,63 +5,78 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 interface BackButtonProps {
-  to: string;
+  href?: string;
   label?: string;
-  position?: "left" | "center" | "right";
+  position?: "left" | "center";
+  className?: string;
 }
 
 const BackButton: React.FC<BackButtonProps> = ({
-  to,
+  href = "/",
   label = "Back",
   position = "left",
+  className = "",
 }) => {
   const router = useRouter();
 
   const positionClasses = {
-    left: "left-4",
+    left: "left-6",
     center: "left-1/2 -translate-x-1/2",
-    right: "right-4",
   };
 
   return (
     <motion.button
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
-      onClick={() => router.push(to)}
-      className={`fixed top-4 z-50 flex items-center gap-2 px-4 py-2.5
-                 bg-white/[0.06] backdrop-blur-xl border border-white/[0.08]
-                 rounded-full text-white/70 text-sm font-medium
-                 hover:bg-white/[0.12] hover:border-white/[0.18] hover:text-white
-                 transition-all duration-500 cursor-pointer
-                 shadow-[0_0_20px_rgba(255,255,255,0.03)]
-                 hover:shadow-[0_0_30px_rgba(255,255,255,0.06)]
-                 group ${positionClasses[position]}`}
+      transition={{ delay: 0.3, duration: 0.5 }}
+      onClick={() => router.push(href)}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className={`
+        fixed top-6 z-50
+        ${positionClasses[position]}
+        flex items-center gap-2
+        px-5 py-3 rounded-full
+        text-white/70 text-sm font-medium
+        transition-all duration-300
+        group
+        ${className}
+      `}
+      style={{
+        background: "rgba(0, 0, 0, 0.5)",
+        backdropFilter: "blur(20px)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
+      }}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
+      {/* Arrow with animation */}
+      <motion.svg
+        animate={{ x: [0, -4, 0] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        className="w-4 h-4 text-white/60 group-hover:text-white transition-colors"
         fill="none"
+        viewBox="0 0 24 24"
         stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="transition-transform duration-300 group-hover:-translate-x-0.5"
       >
-        <path d="M19 12H5" />
-        <path d="M12 19l-7-7 7-7" />
-      </svg>
-      <span className="tracking-wide">{label}</span>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+        />
+      </motion.svg>
 
-      {/* Subtle glow ring on hover */}
-      <span
-        className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100
-                   transition-opacity duration-500 pointer-events-none"
+      <span className="group-hover:text-white transition-colors">{label}</span>
+
+      {/* Hover glow */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileHover={{ opacity: 1 }}
+        className="absolute inset-0 rounded-full pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(124,58,237,0.08) 0%, transparent 70%)",
+            "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
         }}
       />
     </motion.button>

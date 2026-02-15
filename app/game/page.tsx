@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useAppStore";
@@ -83,7 +83,112 @@ const GAME_DETAILS: Record<
   },
 };
 
-// ─── FLOATING PARTICLES ───
+// ═══════════════════════════════════════════════════════════
+// STARS BACKGROUND
+// ═══════════════════════════════════════════════════════════
+const StarsBackground: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    interface Star {
+      x: number;
+      y: number;
+      size: number;
+      opacity: number;
+      speed: number;
+    }
+
+    const stars: Star[] = Array.from({ length: 100 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: 0.5 + Math.random() * 1.5,
+      opacity: 0.3 + Math.random() * 0.7,
+      speed: 0.5 + Math.random() * 2,
+    }));
+
+    let time = 0;
+    let animationId: number;
+
+    const animate = () => {
+      time += 0.016;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach((star) => {
+        const twinkle = Math.sin(time * star.speed) * 0.3 + 0.7;
+        ctx.globalAlpha = star.opacity * twinkle;
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      animationId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener("resize", resize);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 z-0" />;
+};
+
+// ═══════════════════════════════════════════════════════════
+// FLOATING GAME ICONS
+// ═══════════════════════════════════════════════════════════
+const FloatingIcons: React.FC = () => {
+  const icons = ["🎮", "🎯", "🎲", "🏆", "⭐", "💫", "🚀", "🌟"];
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-[1]">
+      {icons.map((icon, i) => (
+        <motion.div
+          key={i}
+          initial={{
+            y: "100vh",
+            x: `${10 + i * 10}vw`,
+            opacity: 0,
+            rotate: 0,
+          }}
+          animate={{
+            y: "-10vh",
+            opacity: [0, 0.2, 0.2, 0],
+            rotate: 360,
+          }}
+          transition={{
+            duration: 12 + Math.random() * 8,
+            delay: i * 1.5,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute text-2xl"
+        >
+          {icon}
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════
+// FLOATING PARTICLES
+// ═══════════════════════════════════════════════════════════
 const FloatingParticles: React.FC = () => {
   const particles = Array.from({ length: 30 }, (_, i) => ({
     id: i,
@@ -95,7 +200,7 @@ const FloatingParticles: React.FC = () => {
   }));
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-[2]">
       {particles.map((p) => (
         <motion.div
           key={p.id}
@@ -108,7 +213,7 @@ const FloatingParticles: React.FC = () => {
           }}
           animate={{
             y: [0, -30, 0],
-            opacity: [0.1, 0.4, 0.1],
+            opacity: [0.1, 0.3, 0.1],
           }}
           transition={{
             duration: p.duration,
@@ -122,7 +227,9 @@ const FloatingParticles: React.FC = () => {
   );
 };
 
-// ─── RULES MODAL ───
+// ═══════════════════════════════════════════════════════════
+// RULES MODAL
+// ═══════════════════════════════════════════════════════════
 const RulesModal: React.FC<{
   game: GameType;
   onClose: () => void;
@@ -225,7 +332,7 @@ const RulesModal: React.FC<{
           {/* Start button */}
           <div className="flex justify-center">
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <GlowButton onClick={onStart} variant="gold" size="lg">
+              <GlowButton onClick={onStart} variant="primary" size="lg">
                 🎮 Play Now
               </GlowButton>
             </motion.div>
@@ -236,7 +343,9 @@ const RulesModal: React.FC<{
   );
 };
 
-// ─── GAME CARD ───
+// ═══════════════════════════════════════════════════════════
+// GAME CARD
+// ═══════════════════════════════════════════════════════════
 const GameCard: React.FC<{
   id: string;
   title: string;
@@ -331,7 +440,7 @@ const GameCard: React.FC<{
           {description}
         </p>
       ) : (
-        <p className="text-sm text-nebula-pink/60 mb-6 flex-grow italic leading-relaxed">
+        <p className="text-sm text-pink-400/60 mb-6 flex-grow italic leading-relaxed">
           {hint}
         </p>
       )}
@@ -360,7 +469,9 @@ const GameCard: React.FC<{
   </motion.div>
 );
 
-// ─── MAIN PAGE ───
+// ═══════════════════════════════════════════════════════════
+// MAIN PAGE
+// ═══════════════════════════════════════════════════════════
 export default function GameHubPage() {
   const router = useRouter();
   useRefreshRedirect();
@@ -431,33 +542,72 @@ export default function GameHubPage() {
   if (!_hasHydrated) return null;
 
   return (
-    <div className="min-h-screen bg-deep-navy relative overflow-hidden">
-      {/* Audio - preserved */}
-      <AudioPlayer />
+    <div className="min-h-screen relative overflow-hidden">
+      {/* ═══ Background Gradient ═══ */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          background: `
+            radial-gradient(ellipse at 30% 20%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
+            radial-gradient(ellipse at 70% 80%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.06) 0%, transparent 70%),
+            linear-gradient(180deg, #0a0a1a 0%, #0f0f2e 50%, #0a0a1a 100%)
+          `,
+        }}
+      />
 
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-cosmic-purple/20 via-deep-navy to-deep-navy" />
-        <div
-          className="absolute inset-0 opacity-30"
+      {/* ═══ Stars Background ═══ */}
+      <StarsBackground />
+
+      {/* ═══ Floating Icons ═══ */}
+      {!activeGame && <FloatingIcons />}
+
+      {/* ═══ Floating Particles ═══ */}
+      {!activeGame && <FloatingParticles />}
+
+      {/* ═══ Ambient Orbs ═══ */}
+      <div className="fixed inset-0 z-[1] pointer-events-none">
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.3, 0.15] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[20%] right-[20%] w-[30vw] h-[30vw] rounded-full blur-[80px]"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 30%, rgba(123,104,238,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,107,157,0.06) 0%, transparent 50%)",
+            background:
+              "radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)",
+          }}
+        />
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.25, 0.1] }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 3,
+          }}
+          className="absolute bottom-[20%] left-[15%] w-[35vw] h-[35vw] rounded-full blur-[100px]"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(59,130,246,0.2) 0%, transparent 70%)",
           }}
         />
       </div>
 
-      {/* Floating particles */}
-      {!activeGame && <FloatingParticles />}
+      {/* ═══ Audio Player ═══ */}
+      <AudioPlayer />
 
-      {/* Navigation */}
-      {!activeGame && <BackButton to="/universe" label="Universe" />}
+      {/* ═══ Navigation ═══ */}
+      {!activeGame && <BackButton href="/universe" label="Universe" />}
       {activeGame && (
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={closeGame}
-          className="fixed top-6 left-6 z-50 text-white/50 hover:text-white flex items-center gap-2 glass px-4 py-2.5 rounded-full cursor-pointer transition-all hover:bg-white/10 group"
+          className="fixed top-6 left-6 z-50 text-white/50 hover:text-white flex items-center gap-2 px-4 py-2.5 rounded-full cursor-pointer transition-all hover:bg-white/10 group"
+          style={{
+            background: "rgba(0,0,0,0.5)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
         >
           <span className="group-hover:-translate-x-0.5 transition-transform">
             ←
@@ -466,7 +616,7 @@ export default function GameHubPage() {
         </motion.button>
       )}
 
-      {/* Rules Modal */}
+      {/* ═══ Rules Modal ═══ */}
       <AnimatePresence>
         {selectedGame && (
           <RulesModal
@@ -477,7 +627,7 @@ export default function GameHubPage() {
         )}
       </AnimatePresence>
 
-      {/* Game Hub Grid */}
+      {/* ═══ Game Hub Grid ═══ */}
       <AnimatePresence mode="wait">
         {!activeGame && (
           <motion.div
@@ -493,47 +643,92 @@ export default function GameHubPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-12 md:mb-16"
             >
+              {/* Decorative Icon */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="mb-6"
+              >
+                <motion.span
+                  animate={{
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="inline-block text-6xl"
+                >
+                  🎮
+                </motion.span>
+              </motion.div>
+
               {/* Decorative stars */}
               <div className="flex items-center justify-center gap-3 mb-4">
                 <motion.span
                   animate={{ opacity: [0.3, 1, 0.3] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="text-white/20"
+                  className="text-purple-400/40"
                 >
                   ✦
                 </motion.span>
                 <motion.span
                   animate={{ opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2.5, repeat: Infinity, delay: 0.3 }}
-                  className="text-white/30"
+                  className="text-blue-400/50"
                 >
                   ✧
                 </motion.span>
                 <motion.span
                   animate={{ opacity: [0.3, 1, 0.3] }}
                   transition={{ duration: 2, repeat: Infinity, delay: 0.7 }}
-                  className="text-white/20"
+                  className="text-purple-400/40"
                 >
                   ✦
                 </motion.span>
               </div>
-              <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl text-glow mb-4 tracking-tight">
+
+              {/* Title */}
+              <h1
+                className="font-serif text-5xl md:text-6xl lg:text-7xl mb-4 tracking-tight"
+                style={{
+                  background:
+                    // "linear-gradient(135deg, #fff 0%, #a78bfa 50%, #60a5fa 100%)",
+                    // "linear-gradient(135deg, #ffffff 0%, #c4b5fd 40%, #60a5fa 100%)",
+                    "linear-gradient(135deg, #22d3ee 0%, #818cf8 50%, #a78bfa 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  textShadow: "0 0 60px rgba(124,58,237,0.3)",
+                }}
+              >
                 Cosmic Arcade
               </h1>
+
               <p className="text-white/40 text-lg md:text-xl font-light max-w-lg mx-auto leading-relaxed">
                 Where stars become games and every challenge brings you closer
                 to the cosmos
               </p>
 
-              {/* <span className="text-white/20 text-xs font-mono flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400/50" />
-                  {gamesPlayed} played
-                </span>
-                <span className="text-white/10">|</span>
-                <span className="text-white/20 text-xs font-mono flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400/50" />
-                  {wonGameIds.length} mastered
-                </span> */}
+              {/* Decorative Divider */}
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+                className="flex items-center justify-center gap-4 my-6"
+              >
+                <div className="h-px w-20 bg-gradient-to-r from-transparent via-purple-400/40 to-transparent" />
+                <motion.span
+                  animate={{ opacity: [0.5, 1, 0.5], rotate: [0, 180, 360] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="text-purple-400/50 text-sm"
+                >
+                  ⭐
+                </motion.span>
+                <div className="h-px w-20 bg-gradient-to-r from-transparent via-purple-400/40 to-transparent" />
+              </motion.div>
             </motion.div>
 
             {/* Game Grid */}
@@ -545,26 +740,11 @@ export default function GameHubPage() {
             >
               {(
                 [
-                  {
-                    id: "catcher" as const,
-                    details: GAME_DETAILS.catcher,
-                  },
-                  {
-                    id: "sync" as const,
-                    details: GAME_DETAILS.sync,
-                  },
-                  {
-                    id: "jump" as const,
-                    details: GAME_DETAILS.jump,
-                  },
-                  {
-                    id: "cipher" as const,
-                    details: GAME_DETAILS.cipher,
-                  },
-                  {
-                    id: "journey" as const,
-                    details: GAME_DETAILS.journey,
-                  },
+                  { id: "catcher" as const, details: GAME_DETAILS.catcher },
+                  { id: "sync" as const, details: GAME_DETAILS.sync },
+                  { id: "jump" as const, details: GAME_DETAILS.jump },
+                  { id: "cipher" as const, details: GAME_DETAILS.cipher },
+                  { id: "journey" as const, details: GAME_DETAILS.journey },
                 ] as const
               ).map((game, index) => (
                 <motion.div
@@ -587,18 +767,48 @@ export default function GameHubPage() {
                 </motion.div>
               ))}
             </motion.div>
+
+            {/* Bottom Quote */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 1 }}
+              className="flex items-center justify-center gap-3 pb-8"
+            >
+              <motion.span
+                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="text-purple-400/30"
+              >
+                ✦
+              </motion.span>
+              <span className="text-white/20 text-xs tracking-[0.2em] uppercase">
+                Let&apos;s Play Together
+              </span>
+              <motion.span
+                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+                className="text-purple-400/30"
+              >
+                ✦
+              </motion.span>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Active Game */}
+      {/* ═══ Active Game ═══ */}
       <AnimatePresence>
         {activeGame && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-deep-navy flex items-center justify-center p-3 md:p-6"
+            className="fixed inset-0 z-40 flex items-center justify-center p-3 md:p-6"
+            style={{
+              background:
+                "linear-gradient(180deg, #0a0a1a 0%, #0f0f2e 50%, #0a0a1a 100%)",
+            }}
           >
             {/* Victory / Lose Overlay */}
             {(showVictory || showLose) && (
@@ -658,7 +868,11 @@ export default function GameHubPage() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <GlowButton onClick={closeGame} variant="gold" size="sm">
+                      <GlowButton
+                        onClick={closeGame}
+                        variant="primary"
+                        size="sm"
+                      >
                         ← Arcade
                       </GlowButton>
                     </motion.div>
