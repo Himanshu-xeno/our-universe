@@ -392,7 +392,18 @@ export default function LandingPage() {
 
   const handleEnter = useCallback(() => {
     setIsTransitioning(true);
-    // Navigate faster - 700ms instead of 1400ms
+
+    // Set session flags so universe page doesn't redirect back
+    try {
+      sessionStorage.setItem("universeSessionActive", "true");
+      sessionStorage.setItem("universeTransitioning", "true");
+      setTimeout(() => {
+        sessionStorage.removeItem("universeTransitioning");
+      }, 3000);
+    } catch (e) {
+      console.warn("Session storage error:", e);
+    }
+
     setTimeout(() => {
       router.push("/universe");
     }, 700);
