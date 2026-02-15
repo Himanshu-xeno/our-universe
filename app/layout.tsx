@@ -4,6 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Our Universe",
   description: "A journey through the stars, written just for you.",
+  icons: {
+    icon: "/images/star.png",
+    shortcut: "/images/star.png",
+    apple: "/images/star.png",
+  },
 };
 
 export const viewport: Viewport = {
